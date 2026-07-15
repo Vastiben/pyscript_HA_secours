@@ -121,7 +121,7 @@ def _run_check(source="cron"):
     global fail_count, link_down
 
     task.unique("wireguard_ha_slave_check")
-    log.info(f"▶ wireguard_ha_slave_check démarré ({source})")
+    log.info(f"▶ wireguard_ha_slave_check démarré ({source}) | critères: handshake<{HANDSHAKE_MAX}s + transfer rx/tx>0")
 
     handshake_age, rx_bytes, tx_bytes = _get_wireguard_stats()
 
@@ -133,7 +133,7 @@ def _run_check(source="cron"):
         f"handshake={handshake_age}s (max={HANDSHAKE_MAX}s) | "
         f"rx={rx_bytes} B | tx={tx_bytes} B"
     )
-    log.debug(f"  {details}")
+    log.debug(f"  check handshake+transfer | {details} | handshake_ok={handshake_ok} | traffic_ok={traffic_ok}")
 
     ok = handshake_ok and traffic_ok
 
@@ -151,14 +151,14 @@ def _run_check(source="cron"):
         fail_count = 0
         link_down = False
         _set_status("up", details, handshake_age, rx_bytes, tx_bytes)
-        log.info("✅ wireguard_ha_slave_check terminé - lien OK")
+        log.info(f"✅ wireguard_ha_slave_check terminé - lien OK | {details}")
         return
 
     fail_count += 1
     _set_status("down", details, handshake_age, rx_bytes, tx_bytes)
     log.warning(
         f"⚠ wireguard_ha_slave_check - échec {fail_count}/{FAIL_THRESHOLD} | "
-        f"handshake_ok={handshake_ok} | traffic_ok={traffic_ok}"
+        f"handshake_ok={handshake_ok} | traffic_ok={traffic_ok} | {details}"
     )
 
     if fail_count >= FAIL_THRESHOLD and not link_down:
@@ -172,7 +172,7 @@ def _run_check(source="cron"):
         _notify_down(msg)
         link_down = True
 
-    log.info("✅ wireguard_ha_slave_check terminé")
+    log.info("wireguard_ha_slave_check terminé")
 
 
 @time_trigger(CHECK_CRON)
