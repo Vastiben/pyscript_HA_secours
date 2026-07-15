@@ -1,7 +1,7 @@
 from datetime import datetime
 
 TELEGRAM_CHAT_ID = 7332342681
-CHECK_CRON = "cron(*/1 * * * *)"
+CHECK_CRON = "cron(* 18 * * *)"
 
 _test_count = 0
 
